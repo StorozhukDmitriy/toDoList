@@ -2,12 +2,13 @@ import "./App.css"
 import { CssBaseline, ThemeProvider } from "@mui/material"
 import { Main } from "@/app/Main.tsx"
 import { useAppSelector } from "@/common/hooks"
-import { getTheme, selectTheme } from "@/common/theme"
+import { getTheme } from "@/common/theme"
 import { Header } from "@/common/components"
+import { ThemeMode } from "@/app/app-slice.ts"
 
 function App() {
-  const ThemeMode = useAppSelector(selectTheme)
-  const theme = getTheme(ThemeMode)
+  const themeMode = useAppSelector(ThemeMode)
+  const theme = getTheme(themeMode)
 
   return (
     <div className="app">

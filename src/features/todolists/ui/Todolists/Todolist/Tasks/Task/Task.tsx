@@ -1,10 +1,11 @@
 import { useAppDispatch } from "@/common/hooks/useAppDispatch.ts"
-import { changeTaskStatusAC, changeTaskTitleAC, deleteTaskAC } from "@/features/todolists/model/tasks-reducer.ts"
+
 import { Box, Checkbox, IconButton, ListItem } from "@mui/material"
 
 import { EditSpan } from "@/common/components/EditSpan/EditSpan.tsx"
 import { Delete } from "@mui/icons-material"
 import { getListItemSx } from "@/features/todolists/ui/Todolists/Todolist/Tasks/Task/Task.styles.ts"
+import { changeTaskStatusAC, changeTaskTitleAC, deleteTaskAC } from "@/features/todolists/model/tasks-slice.ts"
 
 type TaskProps = {
   id: string

@@ -1,8 +1,9 @@
 import { EditSpan } from "@/common/components/EditSpan/EditSpan.tsx"
 import { IconButton } from "@mui/material"
 import { DeleteForever } from "@mui/icons-material"
-import { changeToDoListTitleAC, DeleteTodolistAC } from "@/features/todolists/model/todolists-reducer.ts"
-import { useAppDispatch } from "@/common/hooks/useAppDispatch.ts"
+
+import { changeToDoListTitleTC, DeleteTodolistAC } from "@/features/todolists/model/todolists-slice.ts"
+import { useAppDispatch } from "@/common/hooks"
 
 type TaskTitleProps = {
   title: string
@@ -13,7 +14,7 @@ export const ToDoListTitle = ({ title, toDoListId }: TaskTitleProps) => {
   const dispatch = useAppDispatch()
 
   const changeToDoListTitle = (newTitle: string) => {
-    dispatch(changeToDoListTitleAC({ toDoListId: toDoListId, title: newTitle }))
+    dispatch(changeToDoListTitleTC({ id: toDoListId, title: newTitle }))
   }
 
   const deleteToDoList = (toDoListId: string) => {

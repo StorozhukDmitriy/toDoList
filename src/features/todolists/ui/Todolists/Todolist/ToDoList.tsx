@@ -1,10 +1,12 @@
 import { AddItemForm } from "@/common/components/AddItemForm/AddItemForm.tsx"
-import { FilterType } from "@/features/todolists/model/todolists-reducer.ts"
+
 import { ToDoListTitle } from "@/features/todolists/ui/Todolists/Todolist/TodolistTitle/ToDoListTitle.tsx"
 import { Tasks } from "@/features/todolists/ui/Todolists/Todolist/Tasks/Tasks.tsx"
-import { createTaskAC } from "@/features/todolists/model/tasks-reducer.ts"
+
 import { useAppDispatch } from "@/common/hooks/useAppDispatch.ts"
 import { ButtonSection } from "@/features/todolists/ui/Todolists/Todolist/ButtonSection/ButtonSection.tsx"
+import { FilterType } from "@/features/todolists/model/todolists-slice.ts"
+import { createTaskAC } from "@/features/todolists/model/tasks-slice.ts"
 
 type ToDoListPropsType = {
   toDoListId: string

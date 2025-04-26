@@ -1,5 +1,5 @@
 import { createTheme } from "@mui/material"
-import { ThemeMode } from "@/app/app-reducer.ts"
+import { ThemeMode } from "@/app/app-slice.ts"
 
 //На базе нашего объекта с темами создаём функцию на основании переданнного значения thememode.
 //Которая нам возвращает объект с нашей темой

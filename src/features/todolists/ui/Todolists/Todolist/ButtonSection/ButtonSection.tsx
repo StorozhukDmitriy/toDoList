@@ -1,6 +1,6 @@
 import { Button, ButtonGroup } from "@mui/material"
-import { changeFilterAC, FilterType } from "@/features/todolists/model/todolists-reducer.ts"
 import { useAppDispatch } from "@/common/hooks/useAppDispatch.ts"
+import { changeFilterAC, FilterType } from "@/features/todolists/model/todolists-slice.ts"
 
 type ButtonSectionProps = {
   filter: FilterType

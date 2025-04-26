@@ -3,10 +3,10 @@ import "./index.css"
 
 import { Provider } from "react-redux"
 import { store } from "./app/store.ts"
-import { AppHttpRequests } from "@/app/AppHttpRequests.tsx"
+import App from "@/app/App.tsx"
 
 createRoot(document.getElementById("root")!).render(
   <Provider store={store}>
-    <AppHttpRequests />
+    <App />
   </Provider>,
 )
