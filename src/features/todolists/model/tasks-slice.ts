@@ -1,42 +1,180 @@
-import { createSlice, nanoid } from "@reduxjs/toolkit"
-import { TaskType } from "@/features/todolists/ui/Todolists/Todolist/Tasks/Tasks.tsx"
-import { AddTodolistAC, DeleteTodolistAC } from "@/features/todolists/model/todolists-slice.ts"
+import { createTodolistTC, deleteTodolistTC } from "@/features/todolists/model/todolists-slice.ts"
+import { createAppSlice } from "@/common/utils"
+import { DomainTask, tasksApi, TaskStatus, UpdateTaskModel } from "@/features/todolists/api"
 
-export type TaskStateType = Record<string, Array<TaskType>>
+import { RootState } from "@/app/store.ts"
+import { changeStatusModeAC } from "@/app/app-slice.ts"
+import { ResultCode } from "@/common/enums"
+import { handleServerNetworkError } from "@/common/utils/handleServerNetworkError.ts"
+import { handleServerAppError } from "@/common/utils/handleServerAppError.ts"
 
-export const tasksSlice = createSlice({
+export type TaskStateType = Record<string, Array<DomainTask>>
+
+//catch в конструкции try|catch отвечает за ошибки с кодом ошибки, все остальные ошибки обрабатываем в if/else.
+
+export const tasksSlice = createAppSlice({
   name: "tasks",
   initialState: {} as TaskStateType,
   reducers: (create) => ({
-    deleteTaskAC: create.reducer<{ taskId: string; todolistId: string }>((state, action) => {
-      const index = state[action.payload.todolistId].findIndex((el) => el.id === action.payload.taskId)
-      state[action.payload.todolistId].splice(index, 1)
-    }),
-    createTaskAC: create.reducer<{ todolistId: string; title: string }>((state, action) => {
-      state[action.payload.todolistId].unshift({ id: nanoid(), title: action.payload.title, isDone: false })
-    }),
-    changeTaskStatusAC: create.reducer<{ todolistId: string; taskId: string; isDone: boolean }>((state, action) => {
-      const { todolistId, taskId, isDone } = action.payload
-      const obj = state[todolistId].find((el) => el.id === taskId)
-      if (obj) {
-        obj.isDone = isDone
-      }
-    }),
-    changeTaskTitleAC: create.reducer<{ taskId: string; todolistId: string; title: string }>((state, action) => {
-      const { todolistId, taskId, title } = action.payload
-      state[todolistId].find((el) => (el.id === taskId ? (el.title = title) : el))
-    }),
+    //Принимает в себя payloadCreator( thunk ) и объект
+    getTasks: create.asyncThunk(
+      async (args: { todolistid: string }, thunkAPI) => {
+        const { rejectWithValue, dispatch } = thunkAPI
+        try {
+          dispatch(changeStatusModeAC({ status: "loading" }))
+          const res = await tasksApi.getTasks(args.todolistid)
+          dispatch(changeStatusModeAC({ status: "succeeded" }))
+          return { data: res.data.items, args: args }
+        } catch (error) {
+          dispatch(changeStatusModeAC({ status: "failed" }))
+          return rejectWithValue(null)
+        } finally {
+          dispatch(changeStatusModeAC({ status: "idle" }))
+        }
+      },
+      {
+        fulfilled: (state, action) => {
+          if (action.payload) {
+            state[action.payload.args.todolistid] = action.payload.data
+          }
+        },
+      },
+    ),
+
+    deleteTaskTC: create.asyncThunk(
+      async (args: { taskId: string; todolistId: string }, thunkAPI) => {
+        const { rejectWithValue, dispatch } = thunkAPI
+        try {
+          dispatch(changeStatusModeAC({ status: "loading" }))
+          await tasksApi.deleteTask(args.todolistId, args.taskId)
+          dispatch(changeStatusModeAC({ status: "succeeded" }))
+          return args
+        } catch (error) {
+          dispatch(changeStatusModeAC({ status: "failed" }))
+          return rejectWithValue(null)
+        } finally {
+          dispatch(changeStatusModeAC({ status: "idle" }))
+        }
+      },
+      {
+        fulfilled: (state, action) => {
+          if (action.payload) {
+            const index = state[action.payload.todolistId].findIndex((el) => el.id === action.payload?.taskId)
+            state[action.payload.todolistId].splice(index, 1)
+          }
+        },
+      },
+    ),
+    createTaskTC: create.asyncThunk(
+      async (args: { todolistId: string; title: string }, thunkAPI) => {
+        const { rejectWithValue, dispatch } = thunkAPI
+        try {
+          dispatch(changeStatusModeAC({ status: "loading" }))
+          const res = await tasksApi.createTask(args.todolistId, args.title)
+          if (res.data.resultCode === ResultCode.Success) {
+            dispatch(changeStatusModeAC({ status: "succeeded" }))
+            return { item: res.data.data.item, todolistid: args.todolistId }
+          }
+          handleServerAppError(res.data, dispatch)
+          return rejectWithValue(null)
+        } catch (error: any) {
+          debugger
+          handleServerNetworkError(dispatch, error)
+          return rejectWithValue(null)
+        }
+      },
+      {
+        fulfilled: (state, action) => {
+          if (action.payload) {
+            state[action.payload.todolistid].unshift(action.payload.item)
+          }
+        },
+      },
+    ),
+    changeTaskStatusTC: create.asyncThunk(
+      async (args: { todolistId: string; taskId: string; status: TaskStatus }, thunkAPI) => {
+        const { rejectWithValue, dispatch } = thunkAPI
+        try {
+          const state = thunkAPI.getState() as RootState
+          dispatch(changeStatusModeAC({ status: "loading" }))
+          const task = state.tasks[args.todolistId].find((el) => el.id === args.taskId) as DomainTask
+          const model: UpdateTaskModel = {
+            description: task.description,
+            status: args.status,
+            deadline: task.deadline,
+            title: task.title,
+            startDate: task.startDate,
+            priority: task.priority,
+          }
+          const res = await tasksApi.updateTaks({
+            todolistId: args.todolistId,
+            taskId: args.taskId,
+            model: model,
+          })
+          dispatch(changeStatusModeAC({ status: "succeeded" }))
+          return res.data.data.item
+        } catch (error) {
+          dispatch(changeStatusModeAC({ status: "failed" }))
+          return rejectWithValue(error)
+        } finally {
+          dispatch(changeStatusModeAC({ status: "idle" }))
+        }
+      },
+      {
+        fulfilled: (state, action) => {
+          const obj = state[action.payload.todoListId].find((el) => el.id === action.payload.id)
+          if (obj) {
+            obj.status = action.payload.status
+          }
+        },
+      },
+    ),
+    changeTaskTitleTC: create.asyncThunk(
+      async (args: { taskId: string; todolistId: string; title: string }, thunkAPI) => {
+        const { rejectWithValue, getState, dispatch } = thunkAPI
+        const state = getState() as RootState // Получаем весь стейт
+        const task = state.tasks[args.todolistId].find((el) => el.id === args.taskId) as DomainTask
+        const model = {
+          description: task.description,
+          status: task.status,
+          deadline: task.deadline,
+          title: args.title,
+          startDate: task.startDate,
+          priority: task.priority,
+        }
+        try {
+          dispatch(changeStatusModeAC({ status: "loading" }))
+          const res = await tasksApi.updateTaks({ todolistId: args.todolistId, taskId: args.taskId, model: model })
+          dispatch(changeStatusModeAC({ status: "succeeded" }))
+          return res.data.data.item
+        } catch (error) {
+          dispatch(changeStatusModeAC({ status: "failed" }))
+          return rejectWithValue(error)
+        } finally {
+          dispatch(changeStatusModeAC({ status: "idle" }))
+        }
+      },
+      {
+        fulfilled: (state, action) => {
+          const { todoListId: todolistId, id: taskId, title } = action.payload
+          state[todolistId].find((el) => (el.id === taskId ? (el.title = title) : el))
+        },
+      },
+    ),
   }),
-  //extraReducers - функция возвращающая объект, используется если при изменениях в одном редьюсере, должны произойти попутно изменения в другом и при работе с санками.
-  // иначе говоря, если диспатчим action из одного слайса, но так же необходимо осуществить изменения в другом.
-  // Поскольку у нас createSlice формирует название из name + AC, получается что при вызове AddTodolistAC, case из taskReducer не будет вызван, так как у него будет имя tasks/AddTodolistAC, а не todolists/AddTodolistAC.
+
   extraReducers: (builder) => {
     builder
-      .addCase(AddTodolistAC, (state, action) => {
-        state[action.payload.id] = []
+      .addCase(createTodolistTC.fulfilled, (state, action) => {
+        if (action.payload) {
+          state[action.payload?.id] = []
+        }
       })
-      .addCase(DeleteTodolistAC, (state, action) => {
-        delete state[action.payload.id]
+      .addCase(deleteTodolistTC.fulfilled, (state, action) => {
+        if (action.payload) {
+          console.log(action.payload)
+          delete state[action.payload.id]
+        }
       })
   },
   selectors: {
@@ -46,5 +184,5 @@ export const tasksSlice = createSlice({
 
 export const tasksReducer = tasksSlice.reducer
 
-export const { deleteTaskAC, createTaskAC, changeTaskStatusAC, changeTaskTitleAC } = tasksSlice.actions
+export const { deleteTaskTC, createTaskTC, getTasks, changeTaskStatusTC, changeTaskTitleTC } = tasksSlice.actions
 export const { selectTasks } = tasksSlice.selectors

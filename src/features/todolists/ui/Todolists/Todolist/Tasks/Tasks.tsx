@@ -2,28 +2,34 @@ import { List } from "@mui/material"
 import { useAppSelector } from "@/common/hooks/useAppSelector.ts"
 import { Task } from "@/features/todolists/ui/Todolists/Todolist/Tasks/Task/Task.tsx"
 import { FilterType } from "@/features/todolists/model/todolists-slice.ts"
-import { selectTasks } from "@/features/todolists/model/tasks-slice.ts"
+import { getTasks, selectTasks } from "@/features/todolists/model/tasks-slice.ts"
+import { useEffect } from "react"
+import { useAppDispatch } from "@/common/hooks"
+import { DomainTask, TaskStatus } from "@/features/todolists/api/tasksApi.types.ts"
+import { RequestStatus } from "@/common/types"
 
-export type TaskType = {
-  id: string
-  title: string
-  isDone: boolean
-}
 type TasksListProps = {
   filter: FilterType
   toDoListId: string
+  entityStatus: RequestStatus
 }
 
-export const Tasks = ({ filter, toDoListId }: TasksListProps) => {
-  debugger
+export const Tasks = ({ filter, toDoListId, entityStatus }: TasksListProps) => {
+  const dispatch = useAppDispatch()
+
+  useEffect(() => {
+    //Тут когда диспатчим запрос тасок, обязательно вызов !!!!!!
+    dispatch(getTasks({ todolistid: toDoListId }))
+  }, [])
+
   const tasks = useAppSelector(selectTasks)
 
-  let filteredTask = tasks[toDoListId] as Array<TaskType>
+  let filteredTask = tasks[toDoListId] as Array<DomainTask>
   if (filter === "Active") {
-    filteredTask = tasks[toDoListId]?.filter((task: TaskType) => !task.isDone)
+    filteredTask = tasks[toDoListId]?.filter((task: DomainTask) => task.status === TaskStatus.New)
   }
   if (filter === "Completed") {
-    filteredTask = tasks[toDoListId]?.filter((task: TaskType) => task.isDone)
+    filteredTask = tasks[toDoListId]?.filter((task: DomainTask) => task.status === TaskStatus.Completed)
   }
 
   return (
@@ -33,7 +39,16 @@ export const Tasks = ({ filter, toDoListId }: TasksListProps) => {
       ) : (
         <List>
           {filteredTask?.map((el) => {
-            return <Task key={el.id} id={el.id} toDoListId={toDoListId} isDone={el.isDone} title={el.title} />
+            return (
+              <Task
+                entityStatus={entityStatus}
+                key={el.id}
+                id={el.id}
+                toDoListId={toDoListId}
+                status={el.status}
+                title={el.title}
+              />
+            )
           })}
         </List>
       )}

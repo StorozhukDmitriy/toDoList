@@ -4,9 +4,10 @@ import { AddCircleOutlined } from "@mui/icons-material"
 
 type AddItemFormType = {
   createItem: (newTitle: string) => void
+  disable?: boolean
 }
 
-export const AddItemForm = ({ createItem }: AddItemFormType) => {
+export const AddItemForm = ({ createItem, disable }: AddItemFormType) => {
   const [newTitle, setNewTitle] = useState<string>("")
   const [error, setError] = useState<boolean>(false)
   const [isOpen, setIsOpen] = useState<boolean>(false)
@@ -30,6 +31,7 @@ export const AddItemForm = ({ createItem }: AddItemFormType) => {
   return isOpen ? (
     <div>
       <TextField
+        disabled={disable}
         value={newTitle}
         placeholder={"max title length is 15 characters"}
         variant={"standard"}
@@ -44,7 +46,7 @@ export const AddItemForm = ({ createItem }: AddItemFormType) => {
         }}
         helperText={error ? "Enter valid string" : ""}
       />
-      <IconButton onClick={createTaskHandler} disabled={!newTitle || newTitle.length >= 15}>
+      <IconButton onClick={createTaskHandler} disabled={!newTitle || disable}>
         <AddCircleOutlined color={"primary"} />
       </IconButton>
       {newTitle.length >= 15 && <div style={{ color: "red" }}>title is too long</div>}

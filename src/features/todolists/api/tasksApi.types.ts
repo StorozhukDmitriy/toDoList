@@ -28,6 +28,7 @@ export type UpdateTaskModel = {
 
 //Синтаксис без =
 //Типизируется автоматически и подставляем в status во всех типах.
+// Нельзя переопределить
 export enum TaskStatus {
   New,
   InProgress,

@@ -3,13 +3,13 @@ import { AddItemForm } from "@/common/components/AddItemForm/AddItemForm.tsx"
 
 import { useAppDispatch } from "@/common/hooks/useAppDispatch.ts"
 import { ToDolists } from "@/features/todolists/ui/Todolists/Todolists.tsx"
-import { AddTodolistAC } from "@/features/todolists/model/todolists-slice.ts"
+import { createTodolistTC } from "@/features/todolists/model/todolists-slice.ts"
 
 export const Main = () => {
   const dispatch = useAppDispatch()
 
   const addToDoList = (newTitle: string) => {
-    dispatch(AddTodolistAC(newTitle))
+    dispatch(createTodolistTC(newTitle))
   }
   return (
     <Container maxWidth="lg">

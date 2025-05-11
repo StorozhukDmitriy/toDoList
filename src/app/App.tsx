@@ -3,7 +3,7 @@ import { CssBaseline, ThemeProvider } from "@mui/material"
 import { Main } from "@/app/Main.tsx"
 import { useAppSelector } from "@/common/hooks"
 import { getTheme } from "@/common/theme"
-import { Header } from "@/common/components"
+import { ErrorSnackbar, Header } from "@/common/components"
 import { ThemeMode } from "@/app/app-slice.ts"
 
 function App() {
@@ -17,6 +17,7 @@ function App() {
         <Header />
         <Main />
       </ThemeProvider>
+      <ErrorSnackbar />
     </div>
   )
 }

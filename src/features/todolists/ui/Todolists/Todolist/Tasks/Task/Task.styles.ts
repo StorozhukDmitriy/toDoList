@@ -1,10 +1,11 @@
 import { SxProps } from "@mui/material"
+import { TaskStatus } from "@/features/todolists/api/tasksApi.types.ts"
 
-export const getListItemSx = (isDone: boolean): SxProps => ({
+export const getListItemSx = (status: TaskStatus): SxProps => ({
   display: "flex",
   justifyContent: "space-between",
   paddingLeft: "0",
-  fontWeight: isDone ? "normal" : "bold",
+  fontWeight: status === TaskStatus.Completed ? "normal" : "bold",
   // color: isDone ? 'grey' : 'black',
-  opacity: isDone ? "0.5" : "1",
+  opacity: status === TaskStatus.Completed ? "0.5" : "1",
 })

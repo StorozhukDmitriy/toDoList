@@ -1,32 +1,35 @@
 import { createSlice } from "@reduxjs/toolkit"
+import { RequestStatus } from "@/common/types"
+
 export type ThemeMode = "dark" | "light"
-// export const changeThemeModeAC = createAction<{ themeMode: ThemeMode }>("app/changeThemeMode")
-
-// export const appReducer = createReducer(initialState, (builder) => {
-//   builder.addCase(changeThemeModeAC, (state, action) => {
-//     state.themeMode = action.payload.themeMode
-//   })
-// })
-
-//CreateSlice возвращает объект, обязательными свойствами которого являются name, initial state, reducers ( reducers получем через функцию в которую передаём (create)=>{объект}, синтаксис записи Название AC: create.reducer((state,action)=> и так далее )
 export const appSlice = createSlice({
   name: "ThemeMode",
   initialState: {
+    //Первое значение по умолчанию, а после as (воспринимай как тип)
     themeMode: "light" as ThemeMode,
+    status: "idle" as RequestStatus,
+    error: null as string | null,
   },
   reducers: (create) => ({
     //Подредьюсер или экшен криейтор
     changeThemeModeAC: create.reducer<{ themeMode: ThemeMode }>((state, action) => {
       state.themeMode = action.payload.themeMode
     }),
+    changeStatusModeAC: create.reducer<{ status: RequestStatus }>((state, action) => {
+      state.status = action.payload.status
+    }),
+    changeErrorAC: create.reducer<{ error: string | null }>((state, action) => {
+      state.error = action.payload.error
+    }),
   }),
-  //При помощи селекторов, мы достаём часть стейта.
   selectors: {
     selectTheme: (state) => state.themeMode,
+    selectStatus: (state) => state.status,
+    selectError: (state) => state.error,
   },
 })
-//При помощи диструктуризации достаём из слайса action and reducer.
-
-export const { changeThemeModeAC } = appSlice.actions
+export const { changeThemeModeAC, changeStatusModeAC, changeErrorAC } = appSlice.actions
 export const appReducer = appSlice.reducer
 export const ThemeMode = appSlice.selectors.selectTheme
+export const Status = appSlice.selectors.selectStatus
+export const SelectError = appSlice.selectors.selectError
